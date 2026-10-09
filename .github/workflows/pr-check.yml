@@ -1,26 +1,5 @@
-# Runs on every pull request (like lesson 4). Never deploys.
 name: pr-check
 on: pull_request
 jobs:
-  secret-scan:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Look for passwords in the code
-        run: |
-          if grep -rn "password=" --exclude-dir=.git --exclude-dir=.github . ; then
-            echo "FAIL: found a password in the code"
-            exit 1
-          fi
-          echo "OK: no passwords found"
-
-  terraform-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/tf-setup
-      - name: Format and validate
-        working-directory: terraform
-        run: |
-          terraform fmt -check -recursive
-          terraform validate
+  check:
+    uses: guideveloper-raj/platform-workflows/.github/workflows/reusable-pr-check.yml@v1

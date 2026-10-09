@@ -1,22 +1,22 @@
-# THE PIPELINE: short, because it only CALLS the reusable workflow.
-# Same shape as your GoCD pipeline: dev -> test -> prd, plan then apply.
+# Thin pipeline: calls the shared recipe three times. Same shape as GoCD dev -> test -> prd.
 name: pipeline
 on:
   push:
     branches: [main]
-  workflow_dispatch:       # manual "Run workflow" button
+    paths: ["terraform/**", ".github/workflows/pipeline.yml"]
+  workflow_dispatch:
 
 jobs:
   tf-dev:
-    uses: ./.github/workflows/reusable-terraform.yml
-    with: { environment: dev }
+    uses: guideveloper-raj/platform-workflows/.github/workflows/reusable-terraform.yml@v1
+    with: { environment: dev, var_file: config/dev.tfvars }
 
   tf-test:
     needs: tf-dev
-    uses: ./.github/workflows/reusable-terraform.yml
-    with: { environment: test }
+    uses: guideveloper-raj/platform-workflows/.github/workflows/reusable-terraform.yml@v1
+    with: { environment: test, var_file: config/test.tfvars }
 
   tf-prd:
     needs: tf-test
-    uses: ./.github/workflows/reusable-terraform.yml
-    with: { environment: prd }   # apply pauses here until the reviewer approves
+    uses: guideveloper-raj/platform-workflows/.github/workflows/reusable-terraform.yml@v1
+    with: { environment: prd, var_file: config/prd.tfvars }   # apply waits for the reviewer
