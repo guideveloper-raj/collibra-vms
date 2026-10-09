@@ -1,0 +1,20 @@
+# REUSABLE WORKFLOW: configure the servers for one environment.
+# No `environment:` here on purpose: it only runs after Terraform apply, which
+# already needed approval. Adding it would ask for approval a second time.
+name: reusable-ansible
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+
+jobs:
+  configure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Ansible
+        run: pip install ansible-core
+      - name: Run playbook
+        run: ansible-playbook -i ansible/inventory/${{ inputs.environment }}.ini ansible/playbooks/site.yml

@@ -1,0 +1,33 @@
+# REUSABLE WORKFLOW (workflow_call): one recipe, called once per environment.
+# This replaces the Jinja2 templates that generated your GoCD pipelines.
+#   plan  job = GoCD "terraform plan" stage (automatic)
+#   apply job = GoCD "terraform apply" stage (waits for approval if the
+#               environment has a required reviewer)
+name: reusable-terraform
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/tf-setup
+      - name: terraform plan
+        working-directory: terraform
+        run: terraform plan -input=false -var-file=config/${{ inputs.environment }}.tfvars
+
+  apply:
+    needs: plan
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}   # <- the approval gate lives here
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/tf-setup
+      - name: terraform apply
+        working-directory: terraform
+        run: terraform apply -auto-approve -input=false -var-file=config/${{ inputs.environment }}.tfvars

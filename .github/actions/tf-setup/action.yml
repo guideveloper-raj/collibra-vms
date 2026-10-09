@@ -1,0 +1,12 @@
+# COMPOSITE ACTION: a reusable group of STEPS (lesson 7).
+# A reusable workflow shares whole JOBS; a composite action shares a few steps.
+name: tf-setup
+description: Install Terraform and run init
+runs:
+  using: composite
+  steps:
+    - uses: hashicorp/setup-terraform@v3
+    - name: terraform init
+      shell: bash
+      working-directory: terraform
+      run: terraform init -input=false

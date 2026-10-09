@@ -1,0 +1,34 @@
+# THE PIPELINE: short, because it only CALLS the reusable workflows.
+# Same shape as your GoCD pipeline: dev -> test -> prd, Terraform then Ansible.
+name: pipeline
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:       # manual "Run workflow" button
+
+jobs:
+  tf-dev:
+    uses: ./.github/workflows/reusable-terraform.yml
+    with: { environment: dev }
+  ansible-dev:
+    needs: tf-dev
+    uses: ./.github/workflows/reusable-ansible.yml
+    with: { environment: dev }
+
+  tf-test:
+    needs: ansible-dev
+    uses: ./.github/workflows/reusable-terraform.yml
+    with: { environment: test }
+  ansible-test:
+    needs: tf-test
+    uses: ./.github/workflows/reusable-ansible.yml
+    with: { environment: test }
+
+  tf-prd:
+    needs: ansible-test
+    uses: ./.github/workflows/reusable-terraform.yml
+    with: { environment: prd }   # pauses here until the reviewer approves
+  ansible-prd:
+    needs: tf-prd
+    uses: ./.github/workflows/reusable-ansible.yml
+    with: { environment: prd }
